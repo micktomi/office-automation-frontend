@@ -1,0 +1,95 @@
+{
+  "app": {
+    "title": "Γραφείο AI",
+    "user_placeholder": "user@email",
+    "logout": "Αποσύνδεση",
+    "settings": "Ρυθμίσεις"
+  },
+  "tabs": {
+    "inbox": "Εισερχόμενα",
+    "clients": "Πελάτες",
+    "insurance": "Ασφαλιστήρια",
+    "tasks": "Εργασίες"
+  },
+  "assistant": {
+    "title": "AI Βοηθός",
+    "placeholder": "Πώς μπορώ να βοηθήσω;",
+    "suggestions": {
+      "emails": "Δείξε μου τα emails μου",
+      "insurance": "Ποια ασφαλιστήρια λήγουν;",
+      "tasks": "Τι εκκρεμεί σήμερα;",
+      "reply": "Γράψε απάντηση στο τελευταίο email"
+    },
+    "states": {
+      "idle": "Έτοιμος",
+      "listening": "Ακούω...",
+      "processing": "Επεξεργασία..."
+    }
+  },
+  "inbox": {
+    "sender": "Αποστολέας",
+    "subject": "Θέμα",
+    "date": "Ημερομηνία",
+    "priority": {
+      "high": "υψηλή",
+      "medium": "μεσαία",
+      "low": "χαμηλή"
+    },
+    "actions": {
+      "reply": "Απάντηση",
+      "scan": "Σάρωση Εγγράφου",
+      "archive": "Αρχειοθέτηση",
+      "sync": "Συγχρονισμός"
+    },
+    "empty": "Δεν βρέθηκαν emails. Πάτα Συγχρονισμός."
+  },
+  "clients": {
+    "name": "Όνομα",
+    "afm": "ΑΦΜ",
+    "phone": "Τηλέφωνο",
+    "email": "Email",
+    "new_client": "Νέος Πελάτης",
+    "search": "Αναζήτηση πελάτη...",
+    "empty": "Πρόσθεσε τον πρώτο πελάτη σου.",
+    "sections": {
+      "insurance": "Ασφαλιστήρια",
+      "emails": "Emails",
+      "tasks": "Εργασίες",
+      "documents": "Έγγραφα"
+    }
+  },
+  "insurance": {
+    "type": "Τύπος",
+    "policy_number": "Αριθμός Συμβολαίου",
+    "client": "Πελάτης",
+    "expiry": "Λήξη",
+    "actions": {
+      "renewed": "Ανανεώθηκε",
+      "reject": "Απόρριψη",
+      "notify": "Ειδοποίηση",
+      "load_excel": "Φόρτωση Excel",
+      "scan_email": "Σάρωση Email",
+      "refresh": "Ανανέωση"
+    },
+    "empty": "Κανένα ασφαλιστήριο δεν λήγει σύντομα. ✅"
+  },
+  "tasks": {
+    "today": "Σήμερα",
+    "pending": "Εκκρεμείς",
+    "completed": "Ολοκληρωμένες",
+    "new_task": "Νέα Εργασία",
+    "empty": "Δεν υπάρχουν εκκρεμείς εργασίες."
+  },
+  "settings": {
+    "account": "Λογαριασμός",
+    "services": "Υπηρεσίες",
+    "email_accounts": "Λογαριασμοί Email",
+    "alerts": "Ειδοποιήσεις Ασφαλειών"
+  },
+  "auth": {
+    "login": "Σύνδεση",
+    "google_login": "Σύνδεση με Google",
+    "email": "Email",
+    "password": "Κωδικός"
+  }
+}

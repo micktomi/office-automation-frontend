@@ -1,51 +1,132 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+import axios from 'axios'
+import type { CreateTaskPayload } from '@/types/task'
 
-// --- Task Endpoints ---
-
-export async function getTasks() {
-  const response = await fetch(`${API_BASE_URL}/tasks`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch tasks');
+function getApiBaseUrl() {
+  const configuredUrl = process.env.NEXT_PUBLIC_API_URL?.trim()
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/+$/, '')
   }
-  return response.json();
+
+  if (typeof window !== 'undefined') {
+    const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+    if (isLocalHost) {
+      return 'http://localhost:3001'
+    }
+
+    console.warn('NEXT_PUBLIC_API_URL is not set. Falling back to same-origin API requests.')
+  }
+
+  return ''
 }
 
-// --- Email Agent Endpoints ---
+const api = axios.create({
+  baseURL: getApiBaseUrl(),
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
 
-export async function getEmails() {
-  const response = await fetch(`${API_BASE_URL}/emails`);
-  if (!response.ok) {
-    console.error('Failed to fetch emails', response);
-    throw new Error('Failed to fetch emails');
+api.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
   }
-  return response.json();
+  return config
+})
+
+export interface ChatRequest {
+  message: string
+  context: {
+    currentTab: string
+    selectedEmailId: string | null
+    selectedClientId: string | null
+    selectedPolicyId: string | null
+    lastActionPerformed?: string | null
+    lastActionData?: unknown
+    recentMessages?: Array<{
+      role: 'user' | 'assistant'
+      content: string
+    }>
+  }
 }
 
-export async function syncEmails() {
-  const response = await fetch(`${API_BASE_URL}/sync-emails`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  if (!response.ok) {
-    console.error('Failed to sync emails', response);
-    throw new Error('Failed to sync emails');
-  }
-  return response.json();
+export interface ActionResponse {
+  response: string
+  action_performed?: string
+  data?: unknown
 }
 
-export async function archiveEmail(emailId: number) {
-  const response = await fetch(`${API_BASE_URL}/emails/${emailId}/archive`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  if (!response.ok) {
-    console.error('Failed to archive email', response);
-    throw new Error('Failed to archive email');
-  }
-  // status 204 No Content doesn't have a body to parse
-  return;
+export const apiService = {
+  // Backend compatibility dispatcher
+  callAction: async (action: string, payload: Record<string, unknown> = {}): Promise<ActionResponse> => {
+    const response = await api.post('/agent/action', { action, payload })
+    return response.data
+  },
+
+  // Assistant compatibility endpoint
+  chat: async (data: ChatRequest) => {
+    const response = await api.post('/assistant/chat', data)
+    return response.data
+  },
+
+  // Dev auth compatibility
+  devLogin: async () => {
+    const response = await api.post('/auth/dev-login', {
+      email: 'admin@test-agent.app',
+      password: 'password123',
+    })
+    return response.data
+  },
+
+  // Google OAuth start URL
+  getGoogleAuthUrl: async () => {
+    const response = await api.get('/auth/google/start')
+    return response.data
+  },
+
+  // Upload utility for insurance files
+  uploadDocument: async (fileOrFormData: File | FormData) => {
+    let formData: FormData
+    if (fileOrFormData instanceof File) {
+      formData = new FormData()
+      formData.append('file', fileOrFormData)
+    } else {
+      formData = fileOrFormData
+    }
+
+    const response = await api.post('/insurance/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data
+  },
+
+  uploadInsuranceExcel: async (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await api.post('/insurance/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data
+  },
 }
+
+export const getEmails = () => apiService.callAction('email.list')
+export const syncEmails = () => apiService.callAction('email.sync')
+export const getInsuranceAlerts = (status?: string) =>
+  apiService.callAction('insurance.alerts', status ? { status } : {})
+export const scanPolicies = () => apiService.callAction('insurance.scan')
+export const approveInsuranceAlert = (id: string, draft?: string) =>
+  apiService.callAction('insurance.approve', { alert_id: id, edited_draft: draft })
+export const dismissInsuranceAlert = (id: string) =>
+  apiService.callAction('insurance.dismiss', { alert_id: id })
+export const createTask = (data: CreateTaskPayload) =>
+  apiService.callAction('tasks.create', { ...data })
+export const updateTaskStatus = (id: string, completed: boolean) =>
+  apiService.callAction('tasks.complete', { task_id: id, completed })
+export const callAction = apiService.callAction
+export const uploadDocument = apiService.uploadDocument
+
+export default api
