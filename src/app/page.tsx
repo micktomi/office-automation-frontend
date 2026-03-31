@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const highlights = [
@@ -10,15 +11,18 @@ const highlights = [
 ];
 
 export default function RootPage() {
+  const router = useRouter();
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
     if (params.get("google") === "connected") {
       console.log("LOGIN SUCCESS");
-      localStorage.setItem("auth", "true");
+      localStorage.setItem("token", "test-session");
       window.history.replaceState({}, document.title, "/");
+      router.replace("/dashboard");
     }
-  }, []);
+  }, [router]);
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.18),_transparent_38%),radial-gradient(circle_at_bottom_right,_rgba(139,92,246,0.16),_transparent_34%),linear-gradient(180deg,_#0f172a_0%,_#111827_100%)] text-text">
