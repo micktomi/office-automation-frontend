@@ -2,9 +2,9 @@
 
 import { useAppStore } from '@/store/appStore'
 import { motion, AnimatePresence } from 'framer-motion'
-import InboxPage from './inbox/page'
+import { InboxView } from '@/components/InboxView'
 import ClientsPage from './clients/page'
-import InsurancePage from './insurance/page'
+import { InsuranceView } from '@/components/InsuranceView'
 import TasksPage from './tasks/page'
 import ActivityPage from './activity/page'
 import { DailySummary } from '@/components/DailySummary'
@@ -17,17 +17,17 @@ export default function Dashboard() {
       case 'home':
         return <DailySummary key="home" />
       case 'inbox':
-        return <InboxPage key="inbox" />
+        return <InboxView key="inbox" />
       case 'clients':
         return <ClientsPage key="clients" />
       case 'insurance':
-        return <InsurancePage key="insurance" />
+        return <InsuranceView key="insurance" />
       case 'tasks':
         return <TasksPage key="tasks" />
       case 'activity':
         return <ActivityPage key="activity" />
       default:
-        return <InboxPage key="inbox" />
+        return <InboxView key="inbox" />
     }
   }
 

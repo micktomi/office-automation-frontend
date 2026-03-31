@@ -1,12 +1,15 @@
-import InsurancePage from '../dashboard/insurance/page'
+import { InsuranceView } from '@/components/InsuranceView'
 
-interface PoliciesPageProps {
-  searchParams?: {
-    status?: string
-  }
+interface PoliciesPageSearchParams {
+  status?: string
 }
 
-export default function PoliciesPage({ searchParams }: PoliciesPageProps) {
-  const initialTab = searchParams?.status === 'expired' ? 'expired' : 'expiring'
-  return <InsurancePage initialTab={initialTab} />
+interface PoliciesPageProps {
+  searchParams?: Promise<PoliciesPageSearchParams>
+}
+
+export default async function PoliciesPage({ searchParams }: PoliciesPageProps) {
+  const resolvedSearchParams = await searchParams
+  const initialTab = resolvedSearchParams?.status === 'expired' ? 'expired' : 'expiring'
+  return <InsuranceView initialTab={initialTab} />
 }

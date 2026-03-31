@@ -1,12 +1,15 @@
-import InboxPage from '../dashboard/inbox/page'
+import { InboxView } from '@/components/InboxView'
 
-interface EmailsPageProps {
-  searchParams?: {
-    status?: string
-  }
+interface EmailsPageSearchParams {
+  status?: string
 }
 
-export default function EmailsPage({ searchParams }: EmailsPageProps) {
-  const mode = searchParams?.status === 'all' ? 'all' : 'pending'
-  return <InboxPage mode={mode} />
+interface EmailsPageProps {
+  searchParams?: Promise<EmailsPageSearchParams>
+}
+
+export default async function EmailsPage({ searchParams }: EmailsPageProps) {
+  const resolvedSearchParams = await searchParams
+  const mode = resolvedSearchParams?.status === 'all' ? 'all' : 'pending'
+  return <InboxView mode={mode} />
 }
