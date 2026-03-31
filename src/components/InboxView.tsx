@@ -41,9 +41,11 @@ export function InboxView({ mode = 'pending' }: InboxViewProps) {
     setSyncMessage(null)
     try {
       const result = await apiService.callAction('email.sync')
-      const syncData = result.data as { status?: string; processed?: number; skipped?: number } | undefined
+      const syncData = result.data as { status?: string; processed?: number; skipped?: number; message?: string } | undefined
 
-      if (syncData?.status === 'skip') {
+      if (syncData?.status === 'error') {
+        setSyncMessage(syncData.message || 'Αποτυχία συγχρονισμού email. Κάνε ξανά σύνδεση με Google.')
+      } else if (syncData?.status === 'skip') {
         setSyncMessage('Ο συγχρονισμός παραλείφθηκε. Έλεγξε ότι το Google είναι συνδεδεμένο και δοκίμασε ξανά.')
       } else {
         const processed = syncData?.processed ?? 0
