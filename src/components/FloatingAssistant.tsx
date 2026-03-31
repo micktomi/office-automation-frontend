@@ -109,7 +109,8 @@ export function FloatingAssistant() {
     toggleAssistant,
     getContext,
     assistantMessage,
-    setAssistantMessage
+    setAssistantMessage,
+    requestDashboardRefresh,
   } = useAppStore()
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
@@ -188,13 +189,26 @@ export function FloatingAssistant() {
         data: data.data,
       }
       setMessages(prev => [...prev, assistantMessage])
+
+      if (
+        data.action_performed &&
+        [
+          'email.sync',
+          'insurance.scan',
+          'insurance.approve',
+          'insurance.dismiss',
+          'insurance.notify',
+        ].includes(data.action_performed)
+      ) {
+        requestDashboardRefresh()
+      }
     } catch (error) {
       console.error("Chat failed", error)
       setMessages(prev => [...prev, { role: 'assistant', content: 'Συγγνώμη, παρουσιάστηκε πρόβλημα στη σύνδεση.' }])
     } finally {
       setLoading(false)
     }
-  }, [getContext, loading, messages])
+  }, [getContext, loading, messages, requestDashboardRefresh])
 
   const handleSend = async (text?: string) => {
     const messageText = text || input

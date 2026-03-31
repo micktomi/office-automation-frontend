@@ -10,9 +10,10 @@ interface Client {
   name: string
   email: string
   afm?: string
+  phone?: string
 }
 
-export function ClientList() {
+export function ClientList({ searchTerm = '' }: { searchTerm?: string }) {
   const { selectedClientId, setSelectedClient } = useAppStore()
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,14 +32,26 @@ export function ClientList() {
     fetchClients()
   }, [])
 
+  const filteredClients = clients.filter(client => {
+    const search = searchTerm.toLowerCase()
+    return (
+      client.name.toLowerCase().includes(search) ||
+      client.email.toLowerCase().includes(search) ||
+      (client.afm && client.afm.includes(search)) ||
+      (client.phone && client.phone.includes(search))
+    )
+  })
+
   return (
     <div className="flex-1 overflow-y-auto">
       {loading ? (
         <div className="p-8 text-center text-text-muted italic text-sm">Φόρτωση πελατών...</div>
-      ) : clients.length === 0 ? (
-        <div className="p-8 text-center text-text-muted italic text-sm">Δεν βρέθηκαν πελάτες.</div>
+      ) : filteredClients.length === 0 ? (
+        <div className="p-8 text-center text-text-muted italic text-sm">
+          {searchTerm ? 'Δεν βρέθηκαν αποτελέσματα.' : 'Δεν βρέθηκαν πελάτες.'}
+        </div>
       ) : (
-        clients.map((client) => (
+        filteredClients.map((client) => (
           <div
             key={client.id}
             onClick={() => setSelectedClient(client.id)}
@@ -47,9 +60,19 @@ export function ClientList() {
               selectedClientId === client.id ? "bg-accent/10 border-l-4 border-l-accent" : "border-l-4 border-l-transparent"
             )}
           >
-            <p className="font-semibold text-text">{client.name}</p>
-            <div className="flex items-center gap-3 mt-1 opacity-50 text-xs font-mono">
-               <span>{client.email}</span>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="font-semibold text-text">{client.name}</p>
+                <div className="flex items-center gap-3 mt-1 opacity-50 text-[10px] font-mono">
+                  <span>{client.email}</span>
+                  {client.afm && <span>• ΑΦΜ: {client.afm}</span>}
+                </div>
+              </div>
+              {client.phone && (
+                <div className="text-[10px] opacity-40">
+                  {client.phone}
+                </div>
+              )}
             </div>
           </div>
         ))
@@ -57,3 +80,4 @@ export function ClientList() {
     </div>
   )
 }
+

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Mail, Reply, FileSearch, Archive, User, Calendar, MoreVertical } from 'lucide-react'
+import { Mail, Reply, Archive, User, Calendar, MoreVertical } from 'lucide-react'
 import locales from '@/locales/el.json'
 import type { Email } from '@/types/email'
 import { apiService } from '@/lib/api'
@@ -62,6 +62,10 @@ function cleanEmailBody(rawBody?: string | null) {
   return decoded.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim()
 }
 
+function formatReplySuggestion(rawReply: string) {
+  return rawReply.trim()
+}
+
 export function EmailPreview({ email }: EmailPreviewProps) {
   const [replyDraft, setReplyDraft] = useState('')
   const [replyLoading, setReplyLoading] = useState(false)
@@ -109,7 +113,7 @@ export function EmailPreview({ email }: EmailPreviewProps) {
           ? responseData.reply
           : null
       const replyText = generatedReply || data.response || 'Δεν έλαβα έγκυρη απάντηση.'
-      setReplyDraft(extractDraftText(replyText))
+      setReplyDraft(formatReplySuggestion(extractDraftText(replyText)))
     } catch (error) {
       console.error('Reply generation failed', error)
       setReplyError('Αποτυχία δημιουργίας απάντησης. Δοκίμασε ξανά.')
@@ -129,10 +133,6 @@ export function EmailPreview({ email }: EmailPreviewProps) {
           >
             <Reply className="w-4 h-4" />
             {locales.inbox.actions.reply}
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-xl text-sm font-semibold hover:bg-white/5 transition-all">
-            <FileSearch className="w-4 h-4" />
-            {locales.inbox.actions.scan}
           </button>
         </div>
         <div className="flex items-center gap-2">
@@ -177,9 +177,12 @@ export function EmailPreview({ email }: EmailPreviewProps) {
 
           {(replyLoading || replyDraft || replyError) && (
             <div className="border border-border rounded-2xl bg-surface/30 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-wider opacity-70 mb-3">
-                Πρόχειρη Απάντηση
+              <h3 className="text-sm font-semibold uppercase tracking-wider opacity-70 mb-2">
+                Πρόταση απάντησης
               </h3>
+              <p className="mb-3 text-[11px] uppercase tracking-wider text-text-muted/70">
+                Auto / manual
+              </p>
               {replyLoading && (
                 <p className="text-sm text-text-muted">Δημιουργία απάντησης...</p>
               )}
@@ -187,7 +190,7 @@ export function EmailPreview({ email }: EmailPreviewProps) {
                 <p className="text-sm text-danger">{replyError}</p>
               )}
               {!replyLoading && !replyError && replyDraft && (
-                <p className="whitespace-pre-wrap text-base">{replyDraft}</p>
+                <p className="whitespace-pre-wrap text-sm leading-6 text-text/90">{replyDraft}</p>
               )}
             </div>
           )}

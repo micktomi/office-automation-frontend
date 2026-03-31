@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Lock, Mail, ChevronRight, Loader2, CheckCircle2 } from 'lucide-react'
+import { Loader2, CheckCircle2 } from 'lucide-react'
 import { apiService } from '@/lib/api'
 import locales from '@/locales/el.json'
 
@@ -25,14 +25,10 @@ function LoginPageFallback() {
 function LoginPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  // Check if already logged in or returning from Google
   useEffect(() => {
     const googleStatus = searchParams.get('google')
     const reason = searchParams.get('reason')
@@ -41,7 +37,6 @@ function LoginPageContent() {
       setSuccess("Η σύνδεση με Google ολοκληρώθηκε!")
       ;(async () => {
         try {
-          // Ensure local app session exists even after OAuth round-trip.
           const existing = localStorage.getItem('token')
           if (!existing) {
             const loginResp = await apiService.devLogin()
@@ -60,50 +55,11 @@ function LoginPageContent() {
     }
   }, [router, searchParams])
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    try {
-      const response = await apiService.devLogin()
-      if (response.access_token) {
-        localStorage.setItem('token', response.access_token)
-        router.push('/dashboard')
-      } else {
-        setError("Αποτυχία σύνδεσης: Δεν ελήφθη token.")
-      }
-    } catch (err: unknown) {
-      console.error("Login failed", err)
-      setError("Σφάλμα σύνδεσης με τον διακομιστή.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleGoogleLogin = async () => {
     setGoogleLoading(true)
     setError(null)
     try {
-      const fetchGoogleAuthUrlWithSessionRetry = async () => {
-        try {
-          return await apiService.getGoogleAuthUrl()
-        } catch (err) {
-          const status = (err as { response?: { status?: number } })?.response?.status
-          if (status !== 401) throw err
-
-          // Session token is stale (backend restarted) -> create fresh dev session and retry once.
-          const loginResp = await apiService.devLogin()
-          const refreshedToken = loginResp?.access_token
-          if (!refreshedToken) {
-            throw new Error("No token returned from dev login")
-          }
-          localStorage.setItem('token', refreshedToken)
-          return await apiService.getGoogleAuthUrl()
-        }
-      }
-
-      // Ensure we have a session before asking Google URL.
+      // Ensure a local session token exists before redirecting to Google
       if (!localStorage.getItem('token')) {
         const loginResp = await apiService.devLogin()
         const token = loginResp?.access_token
@@ -114,7 +70,7 @@ function LoginPageContent() {
         localStorage.setItem('token', token)
       }
 
-      const authData = await fetchGoogleAuthUrlWithSessionRetry()
+      const authData = await apiService.getGoogleAuthUrl()
       if (authData.auth_url) {
         window.location.href = authData.auth_url
       } else {
@@ -153,53 +109,10 @@ function LoginPageContent() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="relative group">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-primary transition-colors" />
-              <input
-                type="email"
-                placeholder={locales.auth.email}
-                required
-                className="w-full bg-surface border border-border rounded-xl pl-12 pr-4 py-4 focus:outline-none focus:border-primary transition-all"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="relative group">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-primary transition-colors" />
-              <input
-                type="password"
-                placeholder={locales.auth.password}
-                required
-                className="w-full bg-surface border border-border rounded-xl pl-12 pr-4 py-4 focus:outline-none focus:border-primary transition-all"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || googleLoading}
-              className="w-full bg-primary text-background font-bold py-4 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 group disabled:opacity-50"
-            >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-                <>
-                  {locales.auth.login}
-                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="relative py-2">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border"></div></div>
-            <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-text-muted">ή</span></div>
-          </div>
-
           <button
             type="button"
             onClick={handleGoogleLogin}
-            disabled={loading || googleLoading}
+            disabled={googleLoading}
             className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-white/90 transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-xl"
           >
             {googleLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (

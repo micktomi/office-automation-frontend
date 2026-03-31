@@ -7,12 +7,15 @@ import ClientsPage from './clients/page'
 import InsurancePage from './insurance/page'
 import TasksPage from './tasks/page'
 import ActivityPage from './activity/page'
+import { DailySummary } from '@/components/DailySummary'
 
 export default function Dashboard() {
   const { currentTab } = useAppStore()
 
   const renderContent = () => {
     switch (currentTab) {
+      case 'home':
+        return <DailySummary key="home" />
       case 'inbox':
         return <InboxPage key="inbox" />
       case 'clients':

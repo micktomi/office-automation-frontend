@@ -1,11 +1,12 @@
 'use client'
 
-import { Mail, Users, Shield, CheckSquare, History } from 'lucide-react'
+import { LayoutDashboard, Mail, Users, Shield, CheckSquare, History } from 'lucide-react'
 import { useAppStore, TabType } from '@/store/appStore'
 import { cn } from '@/lib/utils'
 import locales from '@/locales/el.json'
 
 const tabs = [
+  { id: 'home', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'inbox', label: locales.tabs.inbox, icon: Mail },
   { id: 'clients', label: locales.tabs.clients, icon: Users },
   { id: 'insurance', label: locales.tabs.insurance, icon: Shield },

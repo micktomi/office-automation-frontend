@@ -33,9 +33,17 @@ export function EmailList({ emails }: EmailListProps) {
           )}
         >
           <div className="flex justify-between items-start mb-1">
-            <span className={cn("text-sm font-semibold", email.unread ? "text-text" : "text-text-muted")}>
-              {email.sender}
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={cn("text-sm font-semibold", email.unread ? "text-text" : "text-text-muted")}>
+                {email.sender}
+              </span>
+              <span className={cn(
+                "inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
+                getClassificationClasses(email.classification)
+              )}>
+                {email.classification_label || 'Πελάτης'}
+              </span>
+            </div>
             <span className="text-xs text-text-muted">
               {email.received_at ? new Date(email.received_at).toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' }) : ''}
             </span>
@@ -54,4 +62,15 @@ export function EmailList({ emails }: EmailListProps) {
       ))}
     </div>
   )
+}
+
+function getClassificationClasses(classification?: Email['classification']) {
+  switch (classification) {
+    case 'important':
+      return 'border-rose-500/30 bg-rose-500/10 text-rose-300'
+    case 'irrelevant':
+      return 'border-slate-500/30 bg-slate-500/10 text-slate-400'
+    default:
+      return 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+  }
 }

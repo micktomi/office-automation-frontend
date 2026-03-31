@@ -1,6 +1,8 @@
 import axios from 'axios'
 import type { CreateTaskPayload } from '@/types/task'
 
+export const EXPIRING_POLICIES_DAYS = 15
+
 function getApiBaseUrl() {
   const configuredUrl = process.env.NEXT_PUBLIC_API_URL?.trim()
   if (configuredUrl) {
@@ -58,6 +60,13 @@ export interface ActionResponse {
   data?: unknown
 }
 
+export interface DashboardSummary {
+  expiring_soon: number
+  expired: number
+  emails_pending: number
+  sms_pending: number
+}
+
 export const apiService = {
   // Backend compatibility dispatcher
   callAction: async (action: string, payload: Record<string, unknown> = {}): Promise<ActionResponse> => {
@@ -108,6 +117,37 @@ export const apiService = {
 
     const response = await api.post('/insurance/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data
+  },
+
+  uploadInsurancePDF: async (file: File, warningDays = 90) => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await api.post(`/insurance/upload-pdf?warning_days=${warningDays}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data
+  },
+
+  getDashboardSummary: async (days = EXPIRING_POLICIES_DAYS): Promise<DashboardSummary> => {
+    const response = await api.get('/dashboard/summary', {
+      params: {
+        days,
+        _: Date.now(),
+      },
+      headers: {
+        'Cache-Control': 'no-cache, no-store, max-age=0',
+        Pragma: 'no-cache',
+      },
+    })
+    return response.data
+  },
+
+  getInsuranceAlertsByTab: async (tab: 'expiring' | 'expired', days = EXPIRING_POLICIES_DAYS) => {
+    const response = await api.get('/insurance/alerts', {
+      params: { tab, days },
     })
     return response.data
   },

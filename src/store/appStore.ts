@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type TabType = 'inbox' | 'clients' | 'insurance' | 'tasks' | 'activity'
+export type TabType = 'home' | 'inbox' | 'clients' | 'insurance' | 'tasks' | 'activity'
 
 interface AppState {
   currentTab: TabType
@@ -9,6 +9,7 @@ interface AppState {
   selectedPolicyId: string | null
   isAssistantOpen: boolean
   assistantMessage: string
+  dashboardRefreshTick: number
   
   // Actions
   setTab: (tab: TabType) => void
@@ -17,6 +18,7 @@ interface AppState {
   setSelectedPolicy: (id: string | null) => void
   toggleAssistant: (open?: boolean) => void
   setAssistantMessage: (msg: string) => void
+  requestDashboardRefresh: () => void
   
   // Get Context
   getContext: () => {
@@ -28,12 +30,13 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
-  currentTab: 'inbox',
+  currentTab: 'home',
   selectedEmailId: null,
   selectedClientId: null,
   selectedPolicyId: null,
   isAssistantOpen: false,
   assistantMessage: '',
+  dashboardRefreshTick: 0,
 
   setTab: (tab) => set({ currentTab: tab }),
   setSelectedEmail: (id) => set({ selectedEmailId: id }),
@@ -43,6 +46,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     isAssistantOpen: open !== undefined ? open : !state.isAssistantOpen 
   })),
   setAssistantMessage: (msg) => set({ assistantMessage: msg }),
+  requestDashboardRefresh: () =>
+    set((state) => ({ dashboardRefreshTick: state.dashboardRefreshTick + 1 })),
   
   getContext: () => ({
     currentTab: get().currentTab,

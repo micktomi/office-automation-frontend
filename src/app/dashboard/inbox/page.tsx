@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Mail, RefreshCw, Filter } from 'lucide-react'
 import { EmailList } from '@/components/EmailList'
 import { EmailPreview } from '@/components/EmailPreview'
@@ -10,29 +10,38 @@ import locales from '@/locales/el.json'
 import { useAppStore } from '@/store/appStore'
 import type { Email } from '@/types/email'
 
-export default function InboxPage() {
-  const { selectedEmailId, setSelectedEmail } = useAppStore()
+interface InboxPageProps {
+  mode?: 'pending' | 'all'
+}
+
+export default function InboxPage({ mode = 'pending' }: InboxPageProps) {
+  const { selectedEmailId, setSelectedEmail, requestDashboardRefresh } = useAppStore()
   const [loading, setLoading] = useState(false)
   const [emails, setEmails] = useState<Email[]>([])
+  const [showAll, setShowAll] = useState(mode === 'all')
+  const pendingOnly = mode === 'pending'
 
-  const fetchEmails = async () => {
+  const fetchEmails = useCallback(async (includeNoise = showAll) => {
     setLoading(true)
     try {
-      const data = await apiService.callAction('email.list')
+      const action = pendingOnly ? 'email.needs_reply' : 'email.list'
+      const payload = pendingOnly ? {} : { include_noise: includeNoise }
+      const data = await apiService.callAction(action, payload)
       setEmails(Array.isArray(data.data) ? data.data as Email[] : [])
     } catch (error) {
       console.error("Failed to fetch emails", error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [pendingOnly, showAll])
 
   const handleSync = async () => {
     setLoading(true)
     try {
       await apiService.callAction('email.sync')
       // Always refetch after sync to get updated cache
-      await fetchEmails()
+      await fetchEmails(showAll)
+      requestDashboardRefresh()
     } catch (error) {
       console.error("Sync failed:", error)
     } finally {
@@ -41,8 +50,8 @@ export default function InboxPage() {
   }
 
   useEffect(() => {
-    fetchEmails()
-  }, [])
+    fetchEmails(showAll)
+  }, [fetchEmails, showAll])
 
   useEffect(() => {
     if (selectedEmailId && !emails.some((email) => email.id === selectedEmailId)) {
@@ -58,12 +67,18 @@ export default function InboxPage() {
         <div className="p-4 border-b border-border flex items-center justify-between bg-white/[0.02]">
           <h2 className="font-semibold flex items-center gap-2">
             <Mail className="w-4 h-4 text-primary" />
-            {locales.tabs.inbox}
+            {pendingOnly ? 'Emails που περιμένουν απάντηση' : locales.tabs.inbox}
           </h2>
           <div className="flex items-center gap-2">
-            <button className="p-2 hover:bg-white/5 rounded-lg text-text-muted transition-colors">
-              <Filter className="w-4 h-4" />
-            </button>
+            {!pendingOnly && (
+              <button
+                onClick={() => setShowAll((current) => !current)}
+                className="p-2 hover:bg-white/5 rounded-lg text-text-muted transition-colors"
+                title={showAll ? 'Δείξε σημαντικά' : 'Δείξε όλα'}
+              >
+                <Filter className="w-4 h-4" />
+              </button>
+            )}
             <button
               onClick={handleSync}
               disabled={loading}

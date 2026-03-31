@@ -12,6 +12,7 @@ export default function ClientsPage() {
   const [newClient, setNewClient] = useState({ name: '', email: '', phone: '', afm: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [searchTerm, setSearchTerm] = useState('')
 
   const handleCreateClient = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -41,24 +42,36 @@ export default function ClientsPage() {
             </h2>
             <button 
               onClick={() => setShowNewClientForm(true)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-primary text-background text-xs font-bold rounded-lg hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
+              className="group relative flex items-center gap-2 px-4 py-2 bg-primary text-background text-sm font-bold rounded-xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/20 overflow-hidden"
             >
-              <UserPlus className="w-3.5 h-3.5" />
-              {locales.clients.new_client}
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+              <UserPlus className="w-4 h-4 relative z-10" />
+              <span className="relative z-10">{locales.clients.new_client}</span>
             </button>
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted group-focus-within:text-primary transition-colors" />
             <input
               type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={locales.clients.search}
-              className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary transition-all"
+              className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
             />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/5 rounded-full"
+              >
+                <X className="w-3 h-3 text-text-muted" />
+              </button>
+            )}
           </div>
         </div>
         
-        <ClientList key={refreshKey} />
+        <ClientList key={refreshKey} searchTerm={searchTerm} />
       </div>
+
 
       {/* Client Folder - 65% */}
       <div className="flex-1 bg-background/50 flex flex-col overflow-hidden">
