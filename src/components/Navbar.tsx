@@ -4,6 +4,24 @@ import { Settings, LogOut, ChevronDown } from 'lucide-react'
 import locales from '@/locales/el.json'
 
 export function Navbar() {
+  const handleLogout = async () => {
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+      // Call backend to clear the session cookie
+      await fetch(`${backendUrl}/auth/logout`, { method: 'POST', credentials: 'include' })
+      
+      // Clear localStorage if any
+      localStorage.removeItem('user_email')
+      
+      // Redirect to login or refresh
+      window.location.href = '/'
+    } catch (error) {
+      console.error('Logout failed:', error)
+      // Fallback redirect
+      window.location.href = '/'
+    }
+  }
+
   return (
     <nav className="h-16 border-b border-border bg-surface px-6 flex items-center justify-between sticky top-0 z-50">
       <div className="flex items-center gap-2">
@@ -20,7 +38,11 @@ export function Navbar() {
           <button className="p-2 hover:bg-white/5 rounded-full transition-colors text-text-muted hover:text-text" title={locales.app.settings}>
             <Settings className="w-5 h-5" />
           </button>
-          <button className="p-2 hover:bg-white/5 rounded-full transition-colors text-text-muted hover:text-danger" title={locales.app.logout}>
+          <button 
+            onClick={handleLogout}
+            className="p-2 hover:bg-white/5 rounded-full transition-colors text-text-muted hover:text-danger" 
+            title={locales.app.logout}
+          >
             <LogOut className="w-5 h-5" />
           </button>
         </div>
