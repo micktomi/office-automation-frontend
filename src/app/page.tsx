@@ -1,3 +1,6 @@
+'use client';
+
+import { useEffect } from "react";
 import Link from "next/link";
 
 const highlights = [
@@ -7,6 +10,16 @@ const highlights = [
 ];
 
 export default function RootPage() {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("google") === "connected") {
+      console.log("LOGIN SUCCESS");
+      localStorage.setItem("auth", "true");
+      window.history.replaceState({}, document.title, "/");
+    }
+  }, []);
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.18),_transparent_38%),radial-gradient(circle_at_bottom_right,_rgba(139,92,246,0.16),_transparent_34%),linear-gradient(180deg,_#0f172a_0%,_#111827_100%)] text-text">
       <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-between px-6 py-8 md:px-10">
