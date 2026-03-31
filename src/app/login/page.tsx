@@ -61,25 +61,24 @@ function LoginPageContent() {
     try {
       // Ensure a local session token exists before redirecting to Google
       if (!localStorage.getItem('token')) {
-        const loginResp = await apiService.devLogin()
-        const token = loginResp?.access_token
-        if (!token) {
-          setError("Αποτυχία σύνδεσης: Δεν ελήφθη token.")
-          return
+        try {
+          const loginResp = await apiService.devLogin()
+          const token = loginResp?.access_token
+          if (token) {
+            localStorage.setItem('token', token)
+          }
+        } catch (devLoginErr) {
+          console.error("Dev login failed", devLoginErr)
+          // We continue anyway, as Google login might still be desired
         }
-        localStorage.setItem('token', token)
       }
 
-      const authData = await apiService.getGoogleAuthUrl()
-      if (authData.auth_url) {
-        window.location.href = authData.auth_url
-      } else {
-        setError("Δεν βρέθηκε URL σύνδεσης με Google.")
-      }
+      // Redirect directly to backend for Google OAuth
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+      window.location.href = `${backendUrl}/auth/google/login`
     } catch (err) {
-      console.error("Google Auth failed", err)
-      setError("Αποτυχία σύνδεσης με Google.")
-    } finally {
+      console.error("Google Auth redirect failed", err)
+      setError("Αποτυχία έναρξης σύνδεσης με Google.")
       setGoogleLoading(false)
     }
   }
