@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Γραφείο AI",
-  description: "AI-powered office workspace for Greek professionals",
+  title: {
+    default: "Γραφείο AI",
+    template: "%s | Γραφείο AI",
+  },
+  description: "AI-powered office workspace for Greek professionals.",
+  applicationName: "Γραφείο AI",
 };
 
 export default function RootLayout({
