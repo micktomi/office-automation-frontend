@@ -19,6 +19,7 @@ export function InboxView({ mode = 'pending' }: InboxViewProps) {
   const [loading, setLoading] = useState(false)
   const [emails, setEmails] = useState<Email[]>([])
   const [showAll, setShowAll] = useState(mode === 'all')
+  const [syncMessage, setSyncMessage] = useState<string | null>(null)
   const pendingOnly = mode === 'pending'
 
   const fetchEmails = useCallback(async (includeNoise = showAll) => {
@@ -37,13 +38,32 @@ export function InboxView({ mode = 'pending' }: InboxViewProps) {
 
   const handleSync = async () => {
     setLoading(true)
+    setSyncMessage(null)
     try {
-      await apiService.callAction('email.sync')
+      const result = await apiService.callAction('email.sync')
+      const syncData = result.data as { status?: string; processed?: number; skipped?: number } | undefined
+
+      if (syncData?.status === 'skip') {
+        setSyncMessage('Ο συγχρονισμός παραλείφθηκε. Έλεγξε ότι το Google είναι συνδεδεμένο και δοκίμασε ξανά.')
+      } else {
+        const processed = syncData?.processed ?? 0
+        setSyncMessage(processed > 0
+          ? `Ο συγχρονισμός ολοκληρώθηκε. Ενημερώθηκαν ${processed} email.`
+          : 'Ο συγχρονισμός ολοκληρώθηκε, αλλά δεν βρέθηκαν νέα email.')
+      }
+
       // Always refetch after sync to get updated cache
       await fetchEmails(showAll)
       requestDashboardRefresh()
     } catch (error) {
       console.error('Sync failed:', error)
+      const errorMessage =
+        typeof error === 'object' && error !== null && 'response' in error
+          ? ((error as { response?: { data?: { detail?: string; message?: string } } }).response?.data?.detail) ||
+            ((error as { response?: { data?: { detail?: string; message?: string } } }).response?.data?.message)
+          : null
+
+      setSyncMessage(errorMessage || 'Αποτυχία συγχρονισμού email. Δοκίμασε ξανά.')
     } finally {
       setLoading(false)
     }
@@ -89,6 +109,12 @@ export function InboxView({ mode = 'pending' }: InboxViewProps) {
             </button>
           </div>
         </div>
+
+        {syncMessage && (
+          <div className="mx-4 mt-4 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary">
+            {syncMessage}
+          </div>
+        )}
 
         <EmailList emails={emails} />
       </div>
